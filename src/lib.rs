@@ -27,7 +27,13 @@
 use core::cell::Cell;
 use core::sync::atomic::Ordering;
 
-#[cfg(radium_atomic)]
+#[cfg(any(
+    radium_atomic_8,
+    radium_atomic_16,
+    radium_atomic_32,
+    radium_atomic_64,
+    radium_atomic_ptr
+))]
 use core::sync::atomic;
 
 #[cfg(radium_atomic_8)]
@@ -42,7 +48,7 @@ use core::sync::atomic::{AtomicI32, AtomicU32};
 #[cfg(radium_atomic_64)]
 use core::sync::atomic::{AtomicI64, AtomicU64};
 
-#[cfg(radium_atomic_word)]
+#[cfg(radium_atomic_ptr)]
 use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
 
 /// A maybe-atomic shared mutable fundamental type `T`.
@@ -529,10 +535,11 @@ macro_rules! radium {
     };
 
     // Implement `Radium` for integral fundamentals.
-    ( int $( $base:ty , $atom:ty ; )* ) => { $(
+    ( int $flag:ident $( $base:ty , $atom:ty ; )* ) => { $(
         impl marker::BitOps for $base {}
         impl marker::NumericOps for $base {}
 
+        #[cfg($flag)]
         impl Radium<$base> for $atom {
             radium!(atom $base);
             radium!(atom_bit $base);
@@ -547,20 +554,11 @@ macro_rules! radium {
     )* };
 }
 
-#[cfg(radium_atomic_8)]
-radium![int i8, AtomicI8; u8, AtomicU8;];
-
-#[cfg(radium_atomic_16)]
-radium![int i16, AtomicI16; u16, AtomicU16;];
-
-#[cfg(radium_atomic_32)]
-radium![int i32, AtomicI32; u32, AtomicU32;];
-
-#[cfg(radium_atomic_64)]
-radium![int i64, AtomicI64; u64, AtomicU64;];
-
-#[cfg(radium_atomic_word)]
-radium![int isize, AtomicIsize; usize, AtomicUsize;];
+radium![int radium_atomic_8 i8, AtomicI8; u8, AtomicU8;];
+radium![int radium_atomic_16 i16, AtomicI16; u16, AtomicU16;];
+radium![int radium_atomic_32 i32, AtomicI32; u32, AtomicU32;];
+radium![int radium_atomic_64 i64, AtomicI64; u64, AtomicU64;];
+radium![int radium_atomic_ptr isize, AtomicIsize; usize, AtomicUsize;];
 
 impl marker::BitOps for bool {}
 
@@ -619,7 +617,7 @@ impl Radium<bool> for Cell<bool> {
     }
 }
 
-#[cfg(radium_atomic_word)]
+#[cfg(radium_atomic_ptr)]
 impl<T> Radium<*mut T> for AtomicPtr<T> {
     radium!(atom *mut T);
 

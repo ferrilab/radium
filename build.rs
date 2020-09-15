@@ -27,7 +27,7 @@ struct Atomics {
     /// Target supports 64-bit atomics
     has_64: bool,
     /// Target supports word-width atomics
-    has_word: bool,
+    has_ptr: bool,
 }
 
 impl Atomics {
@@ -36,19 +36,15 @@ impl Atomics {
         has_16: true,
         has_32: true,
         has_64: true,
-        has_word: true,
+        has_ptr: true,
     };
     const NONE: Self = Self {
         has_8: false,
         has_16: false,
         has_32: false,
         has_64: false,
-        has_word: false,
+        has_ptr: false,
     };
-
-    fn any(&self) -> bool {
-        self.has_8 || self.has_16 || self.has_32 || self.has_64 || self.has_word
-    }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -71,9 +67,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ => {}
     }
 
-    if atomics.any() {
-        println!("cargo:rustc-cfg=radium_atomic");
-    }
     if atomics.has_8 {
         println!("cargo:rustc-cfg=radium_atomic_8");
     }
@@ -86,8 +79,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if atomics.has_64 {
         println!("cargo:rustc-cfg=radium_atomic_64");
     }
-    if atomics.has_word {
-        println!("cargo:rustc-cfg=radium_atomic_word");
+    if atomics.has_ptr {
+        println!("cargo:rustc-cfg=radium_atomic_ptr");
     }
 
     Ok(())
