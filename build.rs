@@ -3,6 +3,16 @@
 //! This build script translates the target for which `radium` is being compiled
 //! into a set of directives that the crate can use to control which atomic
 //! symbols it attempts to name.
+//!
+//! The compiler maintains its store of target information here:
+//! <https://github.com/rust-lang/rust/tree/be28b6235e64e0f662b96b710bf3af9de169215c/compiler/rustc_target/src/spec>
+//!
+//! That module is not easily extracted into something that can be loaded here,
+//! so we are replicating it through string matching on the target name until
+//! the `cfg(target_has_atomic)` flag stabilizes.
+//!
+//! Use `rustc --print target-list` to enumerate the full list of targets
+//! available.
 
 /// Collection of flags indicating whether the target processor supports atomic
 /// instructions for a certain width.
@@ -41,17 +51,26 @@ impl Atomics {
     }
 }
 
-fn main() -> Result<(), std::env::VarError> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut atomics = Atomics::ALL;
-    match &*std::env::var("TARGET")? {
-        // Add new target strings here with their atomic availability.
-        "arm-linux-androideabi"
-        | "mips-unknown-linux-gnu"
-        | "mipsel-unknown-linux-gnu"
-        | "powerpc-unknown-linux-gnu" => atomics.has_64 = false,
-        "riscv32imc-unknown-none-elf" => atomics = Atomics::NONE,
+
+    let target = std::env::var("TARGET")?;
+    // Add new target strings here with their atomic availability.
+    #[allow(clippy::single_match)]
+    match &*target {
+        "arm-linux-androideabi" => atomics.has_64 = false,
         _ => {}
-    };
+    }
+
+    let arch = target.split('-').next().ok_or("Invalid target triple")?;
+    // Add new architecture sections here with their atomic availability.
+    #[allow(clippy::single_match)]
+    match arch {
+        "mips" | "mipsel" | "powerpc" => atomics.has_64 = false,
+        "riscv32imc" => atomics = Atomics::NONE,
+        _ => {}
+    }
+
     if atomics.any() {
         println!("cargo:rustc-cfg=radium_atomic");
     }
@@ -70,5 +89,6 @@ fn main() -> Result<(), std::env::VarError> {
     if atomics.has_word {
         println!("cargo:rustc-cfg=radium_atomic_word");
     }
+
     Ok(())
 }
