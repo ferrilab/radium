@@ -25,20 +25,25 @@
 #![deny(unconditional_recursion)]
 
 use core::cell::Cell;
-use core::sync::atomic::{
-    self, AtomicBool, AtomicI16, AtomicI32, AtomicI8, AtomicIsize, AtomicPtr, AtomicU16, AtomicU32,
-    AtomicU8, AtomicUsize, Ordering,
-};
+use core::sync::atomic::Ordering;
 
-// Note: The correct gate to use is `target_has_atomic`, but it is unstable as
-// of EOY 2019, and cannot be used in libraries targeting stable. When this
-// attribute stabilizes, all types from i8 through i128 should be separately
-// gated on this attribute, in order to match the standard library's provision
-// of atomic types.
-//
-// Rust tracking issue: https://github.com/rust-lang/rust/issues/32976
-#[cfg(target_pointer_width = "64")]
+#[cfg(radium_atomic)]
+use core::sync::atomic;
+
+#[cfg(radium_atomic_8)]
+use core::sync::atomic::{AtomicBool, AtomicI8, AtomicU8};
+
+#[cfg(radium_atomic_16)]
+use core::sync::atomic::{AtomicI16, AtomicU16};
+
+#[cfg(radium_atomic_32)]
+use core::sync::atomic::{AtomicI32, AtomicU32};
+
+#[cfg(radium_atomic_64)]
 use core::sync::atomic::{AtomicI64, AtomicU64};
+
+#[cfg(radium_atomic_word)]
+use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
 
 /// A maybe-atomic shared mutable fundamental type `T`.
 ///
@@ -542,27 +547,24 @@ macro_rules! radium {
     )* };
 }
 
-radium![
-    int
-    i8, AtomicI8;
-    i16, AtomicI16;
-    i32, AtomicI32;
-    isize, AtomicIsize;
-    u8, AtomicU8;
-    u16, AtomicU16;
-    u32, AtomicU32;
-    usize, AtomicUsize;
-];
+#[cfg(radium_atomic_8)]
+radium![int i8, AtomicI8; u8, AtomicU8;];
 
-#[cfg(target_pointer_width = "64")]
-radium![
-    int
-    i64, AtomicI64;
-    u64, AtomicU64;
-];
+#[cfg(radium_atomic_16)]
+radium![int i16, AtomicI16; u16, AtomicU16;];
+
+#[cfg(radium_atomic_32)]
+radium![int i32, AtomicI32; u32, AtomicU32;];
+
+#[cfg(radium_atomic_64)]
+radium![int i64, AtomicI64; u64, AtomicU64;];
+
+#[cfg(radium_atomic_word)]
+radium![int isize, AtomicIsize; usize, AtomicUsize;];
 
 impl marker::BitOps for bool {}
 
+#[cfg(radium_atomic_8)]
 impl Radium<bool> for AtomicBool {
     radium!(atom bool);
     radium!(atom_bit bool);
@@ -617,6 +619,7 @@ impl Radium<bool> for Cell<bool> {
     }
 }
 
+#[cfg(radium_atomic_word)]
 impl<T> Radium<*mut T> for AtomicPtr<T> {
     radium!(atom *mut T);
 

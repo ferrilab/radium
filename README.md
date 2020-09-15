@@ -13,6 +13,19 @@ This crate is `#![no_std]`-compatible, and uses no non-core types.
 
 For more details, see the trait's documentation.
 
+## Target Architecture Compatibility
+
+Not all Rust targets have symbols for atomic types! The compiler knows what
+targets have what atomics, but does not expose this information on the stable
+channel for libraries to use.
+
+As such, `radium` uses a build script to detect the target architecture and emit
+our own directives that mark the presence or absence of an atomic integer.
+
+If `radium` does not work for your architecture, please update the build script
+with your target string and the correct listing of atomic instructions and
+submit a pull request.
+
 ---
 
 **@kneecaw** - <https://twitter.com/kneecaw/status/1132695060812849154>
