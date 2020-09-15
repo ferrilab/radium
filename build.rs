@@ -45,7 +45,7 @@ fn main() -> Result<(), std::env::VarError> {
     let mut atomics = Atomics::ALL;
     match &*std::env::var("TARGET")? {
         // Add new target strings here with their atomic availability.
-        "mips-unknown-linux-gnu" => atomics.has_64 = false,
+        "mips-unknown-linux-gnu" | "mipsel-unknown-linux-gnu" => atomics.has_64 = false,
         "riscv32imc-unknown-none-elf" => atomics = Atomics::NONE,
         _ => {}
     };
