@@ -71,7 +71,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // both `target_arch = "riscv32", and have no `cfg`-discoverable
         // distinction. As such, the non-atomic RISC-V target must be discovered
         // here, rather than in the macro.
-        "riscv32imc" => atomics = Atomics::NONE,
+        "riscv32i" | "riscv32imc" => atomics = Atomics::NONE,
+        "riscv32imac" => atomics.has_64 = false,
         _ => {}
     }
 
