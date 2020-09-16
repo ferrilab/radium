@@ -24,32 +24,31 @@
 #![no_std]
 #![deny(unconditional_recursion)]
 
+#[macro_use]
+mod has_atomic;
+
 use core::cell::Cell;
 use core::sync::atomic::Ordering;
 
-#[cfg(any(
-    radium_atomic_8,
-    radium_atomic_16,
-    radium_atomic_32,
-    radium_atomic_64,
-    radium_atomic_ptr
-))]
-use core::sync::atomic;
+has_atomic!(8
+    use core::sync::atomic::{AtomicBool, AtomicI8, AtomicU8};
+);
 
-#[cfg(radium_atomic_8)]
-use core::sync::atomic::{AtomicBool, AtomicI8, AtomicU8};
+has_atomic!(16
+    use core::sync::atomic::{AtomicI16, AtomicU16};
+);
 
-#[cfg(radium_atomic_16)]
-use core::sync::atomic::{AtomicI16, AtomicU16};
+has_atomic!(32
+    use core::sync::atomic::{AtomicI32, AtomicU32};
+);
 
-#[cfg(radium_atomic_32)]
-use core::sync::atomic::{AtomicI32, AtomicU32};
+has_atomic!(64
+    use core::sync::atomic::{AtomicI64, AtomicU64};
+);
 
-#[cfg(radium_atomic_64)]
-use core::sync::atomic::{AtomicI64, AtomicU64};
-
-#[cfg(radium_atomic_ptr)]
-use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
+has_atomic!(ptr
+    use core::sync::atomic::{AtomicIsize, AtomicPtr, AtomicUsize};
+);
 
 /// A maybe-atomic shared mutable fundamental type `T`.
 ///
@@ -325,7 +324,7 @@ macro_rules! radium {
 
         #[inline]
         fn fence(order: Ordering) {
-            atomic::fence(order);
+            core::sync::atomic::fence(order);
         }
 
         #[inline]
@@ -535,16 +534,17 @@ macro_rules! radium {
     };
 
     // Implement `Radium` for integral fundamentals.
-    ( int $flag:ident $( $base:ty , $atom:ty ; )* ) => { $(
+    ( int $flag:tt $( $base:ty , $atom:ty ; )* ) => { $(
         impl marker::BitOps for $base {}
         impl marker::NumericOps for $base {}
 
-        #[cfg($flag)]
-        impl Radium<$base> for $atom {
-            radium!(atom $base);
-            radium!(atom_bit $base);
-            radium!(atom_int $base);
-        }
+        has_atomic!($flag
+            impl Radium<$base> for $atom {
+                radium!(atom $base);
+                radium!(atom_bit $base);
+                radium!(atom_int $base);
+            }
+        );
 
         impl Radium<$base> for Cell<$base> {
             radium!(cell $base);
@@ -554,41 +554,42 @@ macro_rules! radium {
     )* };
 }
 
-radium![int radium_atomic_8 i8, AtomicI8; u8, AtomicU8;];
-radium![int radium_atomic_16 i16, AtomicI16; u16, AtomicU16;];
-radium![int radium_atomic_32 i32, AtomicI32; u32, AtomicU32;];
-radium![int radium_atomic_64 i64, AtomicI64; u64, AtomicU64;];
-radium![int radium_atomic_ptr isize, AtomicIsize; usize, AtomicUsize;];
+radium![int 8 i8, AtomicI8; u8, AtomicU8;];
+radium![int 16 i16, AtomicI16; u16, AtomicU16;];
+radium![int 32 i32, AtomicI32; u32, AtomicU32;];
+radium![int 64 i64, AtomicI64; u64, AtomicU64;];
+radium![int ptr isize, AtomicIsize; usize, AtomicUsize;];
 
 impl marker::BitOps for bool {}
 
-#[cfg(radium_atomic_8)]
-impl Radium<bool> for AtomicBool {
-    radium!(atom bool);
-    radium!(atom_bit bool);
+has_atomic!(8
+    impl Radium<bool> for AtomicBool {
+        radium!(atom bool);
+        radium!(atom_bit bool);
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicBool::new(false);
-    /// Radium::fetch_add(&atom, true, Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_add(&self, _value: bool, _order: Ordering) -> bool {
-        unreachable!("This method statically cannot be called")
-    }
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicBool::new(false);
+        /// Radium::fetch_add(&atom, true, Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_add(&self, _value: bool, _order: Ordering) -> bool {
+            unreachable!("This method statically cannot be called")
+        }
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicBool::new(false);
-    /// Radium::fetch_sub(&atom, true, Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_sub(&self, _value: bool, _order: Ordering) -> bool {
-        unreachable!("This method statically cannot be called")
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicBool::new(false);
+        /// Radium::fetch_sub(&atom, true, Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_sub(&self, _value: bool, _order: Ordering) -> bool {
+            unreachable!("This method statically cannot be called")
+        }
     }
-}
+);
 
 impl Radium<bool> for Cell<bool> {
     radium!(cell bool);
@@ -617,76 +618,77 @@ impl Radium<bool> for Cell<bool> {
     }
 }
 
-#[cfg(radium_atomic_ptr)]
-impl<T> Radium<*mut T> for AtomicPtr<T> {
-    radium!(atom *mut T);
+has_atomic!(ptr
+    impl<T> Radium<*mut T> for AtomicPtr<T> {
+        radium!(atom *mut T);
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
-    /// Radium::fetch_and(&atom, ptr::null_mut(), Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_and(&self, _value: *mut T, _order: Ordering) -> *mut T {
-        unreachable!("This method statically cannot be called")
-    }
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
+        /// Radium::fetch_and(&atom, ptr::null_mut(), Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_and(&self, _value: *mut T, _order: Ordering) -> *mut T {
+            unreachable!("This method statically cannot be called")
+        }
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
-    /// Radium::fetch_nand(&atom, ptr::null_mut(), Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_nand(&self, _value: *mut T, _order: Ordering) -> *mut T {
-        unreachable!("This method statically cannot be called")
-    }
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
+        /// Radium::fetch_nand(&atom, ptr::null_mut(), Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_nand(&self, _value: *mut T, _order: Ordering) -> *mut T {
+            unreachable!("This method statically cannot be called")
+        }
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
-    /// Radium::fetch_or(&atom, ptr::null_mut(), Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_or(&self, _value: *mut T, _order: Ordering) -> *mut T {
-        unreachable!("This method statically cannot be called")
-    }
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
+        /// Radium::fetch_or(&atom, ptr::null_mut(), Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_or(&self, _value: *mut T, _order: Ordering) -> *mut T {
+            unreachable!("This method statically cannot be called")
+        }
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
-    /// Radium::fetch_xor(&atom, ptr::null_mut(), Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_xor(&self, _value: *mut T, _order: Ordering) -> *mut T {
-        unreachable!("This method statically cannot be called")
-    }
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
+        /// Radium::fetch_xor(&atom, ptr::null_mut(), Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_xor(&self, _value: *mut T, _order: Ordering) -> *mut T {
+            unreachable!("This method statically cannot be called")
+        }
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
-    /// Radium::fetch_add(&atom, ptr::null_mut(), Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_add(&self, _value: *mut T, _order: Ordering) -> *mut T {
-        unreachable!("This method statically cannot be called")
-    }
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
+        /// Radium::fetch_add(&atom, ptr::null_mut(), Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_add(&self, _value: *mut T, _order: Ordering) -> *mut T {
+            unreachable!("This method statically cannot be called")
+        }
 
-    /// ```compile_fail
-    /// # use std::{ptr, sync::atomic::*, cell::*};
-    /// # use radium::*;
-    /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
-    /// Radium::fetch_sub(&atom, ptr::null_mut(), Ordering::Relaxed);
-    /// ```
-    #[doc(hidden)]
-    fn fetch_sub(&self, _value: *mut T, _order: Ordering) -> *mut T {
-        unreachable!("This method statically cannot be called")
+        /// ```compile_fail
+        /// # use std::{ptr, sync::atomic::*, cell::*};
+        /// # use radium::*;
+        /// let atom = AtomicPtr::<u8>::new(ptr::null_mut());
+        /// Radium::fetch_sub(&atom, ptr::null_mut(), Ordering::Relaxed);
+        /// ```
+        #[doc(hidden)]
+        fn fetch_sub(&self, _value: *mut T, _order: Ordering) -> *mut T {
+            unreachable!("This method statically cannot be called")
+        }
     }
-}
+);
 
 impl<T> Radium<*mut T> for Cell<*mut T> {
     radium!(cell *mut T);
@@ -761,6 +763,7 @@ impl<T> Radium<*mut T> for Cell<*mut T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::cell::Cell;
 
     #[test]
     fn absent_traits() {
@@ -772,5 +775,15 @@ mod tests {
     fn present_traits() {
         static_assertions::assert_impl_all!(bool: marker::BitOps);
         static_assertions::assert_impl_all!(usize: marker::BitOps, marker::NumericOps);
+    }
+
+    #[test]
+    fn always_cell() {
+        static_assertions::assert_impl_all!(Cell<bool>: Radium<bool>);
+        static_assertions::assert_impl_all!(Cell<u8>: Radium<u8>);
+        static_assertions::assert_impl_all!(Cell<u16>: Radium<u16>);
+        static_assertions::assert_impl_all!(Cell<u32>: Radium<u32>);
+        static_assertions::assert_impl_all!(Cell<u64>: Radium<u64>);
+        static_assertions::assert_impl_all!(Cell<usize>: Radium<usize>);
     }
 }
