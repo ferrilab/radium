@@ -6,12 +6,12 @@
 `radium` provides a helper trait with a uniform API for interacting with both
 atomic types like [`AtomicUsize`], and non-atomic types like [`Cell<usize>`].
 
-[`AtomicUsize`]: https://doc.rust-lang.org/core/sync/atomic/struct.AtomicUsize.html
-[`Cell<usize>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
-
 This crate is `#![no_std]`-compatible, and uses no non-core types.
 
 For more details, see the trait's documentation.
+
+[`AtomicUsize`]: https://doc.rust-lang.org/core/sync/atomic/struct.AtomicUsize.html
+[`Cell<usize>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
 
 ## Target Architecture Compatibility
 
