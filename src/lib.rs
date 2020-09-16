@@ -6,6 +6,12 @@
 //!
 //! For details, see the documentation for [`Radium`].
 //!
+//! Additionally, `radium` exports type aliases that map to the atomic types in
+//! `core::sync::atomic` when they exist, and fall back to `Cell` wrappers when
+//! the atomic is missing. These are accessible through the `types` module; you
+//! can use these names for a guaranteed-portable symbol with best-effort atomic
+//! behavior.
+//!
 //! ---
 //!
 //! **@kneecaw** - <https://twitter.com/kneecaw/status/1132695060812849154>
@@ -24,6 +30,7 @@
 #![no_std]
 #![deny(unconditional_recursion)]
 
+pub mod types;
 
 use core::cell::Cell;
 use core::sync::atomic::Ordering;

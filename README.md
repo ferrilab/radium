@@ -10,6 +10,12 @@ This crate is `#![no_std]`-compatible, and uses no non-core types.
 
 For more details, see the trait's documentation.
 
+Additionally, the `radium::types` module provides a set of type aliases for all
+of the atomic primitive types (`bool`, signed and unsigned integers up to 64,
+`*mut T`) that map to the atomic type when it is present, and the `Cell` wrapper
+when it is not. This allows you to have stable, portable, type names that do not
+require `cfg` guards to remove them for targets that do not support them.
+
 [`AtomicUsize`]: https://doc.rust-lang.org/core/sync/atomic/struct.AtomicUsize.html
 [`Cell<usize>`]: https://doc.rust-lang.org/core/cell/struct.Cell.html
 
@@ -19,12 +25,11 @@ Not all Rust targets have symbols for atomic types! The compiler knows what
 targets have what atomics, but does not expose this information on the stable
 channel for libraries to use.
 
-As such, `radium` uses a helper macro to detect the target architecture and emit
+As such, `radium` uses a build script to detect the target architecture and emit
 our own directives that mark the presence or absence of an atomic integer.
 
-If `radium` does not work for your architecture, please update the `has_atomic!`
-macro with your target’s correct listing of atomic instructions and submit a
-pull request.
+If `radium` does not work for your architecture, please update the build script
+to handle your target string and submit a pull request.
 
 ---
 
