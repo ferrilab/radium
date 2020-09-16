@@ -60,6 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Add new target strings here with their atomic availability.
     #[allow(clippy::match_single_binding, clippy::single_match)]
     match &*target {
+        "arm-linux-androideabi" => atomics.has_64 = false,
         _ => {}
     }
 
@@ -69,31 +70,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match arch {
         // "riscv32imc-unknown-none-elf" and "riscv32imac-unknown-none-elf" are
         // both `target_arch = "riscv32", and have no `cfg`-discoverable
-        // distinction. As such, the non-atomic RISC-V target must be discovered
+        // distinction. As such, the atomic RISC-V target must be discovered
         // here, rather than in the macro.
+        "mips" | "mipsel" | "powerpc" | "riscv32imac" => atomics.has_64 = false,
         "riscv32i" | "riscv32imc" => atomics = Atomics::NONE,
-        "riscv32imac" => atomics.has_64 = false,
         _ => {}
     }
 
-    // Target detection prints out flags indicating that the target does **NOT**
-    // have an atomic instruction for the specified width. This flag is picked
-    // up by the `has_atomic!` macro, which looks for markers that an atomic is
-    // absent. The macro presumes that presence is the default state.
-    if !atomics.has_8 {
-        println!("cargo:rustc-cfg=radium_missing_8");
+    if atomics.has_8 {
+        println!("cargo:rustc-cfg=radium_atomic_8");
     }
-    if !atomics.has_16 {
-        println!("cargo:rustc-cfg=radium_missing_16");
+    if atomics.has_16 {
+        println!("cargo:rustc-cfg=radium_atomic_16");
     }
-    if !atomics.has_32 {
-        println!("cargo:rustc-cfg=radium_missing_32");
+    if atomics.has_32 {
+        println!("cargo:rustc-cfg=radium_atomic_32");
     }
-    if !atomics.has_64 {
-        println!("cargo:rustc-cfg=radium_missing_64");
+    if atomics.has_64 {
+        println!("cargo:rustc-cfg=radium_atomic_64");
     }
-    if !atomics.has_ptr {
-        println!("cargo:rustc-cfg=radium_missing_ptr");
+    if atomics.has_ptr {
+        println!("cargo:rustc-cfg=radium_atomic_ptr");
     }
 
     Ok(())

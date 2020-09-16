@@ -14,7 +14,7 @@ description = "Helper traits for working with maybe-atomic values"
 keywords = ["atomic", "cell", "sync", "generic", "trait"]
 categories = ["concurrency", "no-std"]
 
-include = ["src/**/*", "Cargo.toml", "README.md"]
+include = ["src/**/*.rs", "Cargo.toml", "README.md", "build.rs"]
 
 edition = "2018"
 
