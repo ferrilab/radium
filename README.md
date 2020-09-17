@@ -22,8 +22,8 @@ require `cfg` guards to remove them for targets that do not support them.
 ## Target Architecture Compatibility
 
 Not all Rust targets have symbols for atomic types! The compiler knows what
-targets have what atomics, but does not expose this information on the stable
-channel for libraries to use.
+targets have what atomics, but does not yet expose this information on the
+stable channel for libraries to use.
 
 As such, `radium` uses a build script to detect the target architecture and emit
 our own directives that mark the presence or absence of an atomic integer.

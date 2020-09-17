@@ -15,10 +15,20 @@
 //!
 //! That module is not easily extracted into something that can be loaded here,
 //! so we are replicating it through string matching on the target name until
-//! the `cfg(target_has_atomic)` flag stabilizes.
+//! we are able to uniquely identify targets through `cfg` checks.
 //!
 //! Use `rustc --print target-list` to enumerate the full list of targets
 //! available.
+//!
+//! The missing `cfg` checks required for conditional compilation, rather than a
+//! build script, are:
+//!
+//! - [`accessible`](https://github.com/rust-lang/rust/issues/64797)
+//! - [`target_feature`](https://github.com/rust-lang/rust/issues/69098)
+//! - [`target_has_atomic`](https://github.com/rust-lang/rust/issues/32976)
+//!
+//! Once any of these becomes usable on the stable series, we can switch to a
+//! set of `cfg` checks instead of a build script.
 
 /// Collection of flags indicating whether the target processor supports atomic
 /// instructions for a certain width.
