@@ -1,11 +1,5 @@
 //! Target detection
 //!
-//! Prefer putting target information in the `src/has_atomic.rs:has_atomic!`
-//! macro instead. Some targets, such as `riscv32imc`, are not uniquely
-//! selectable through the available compiler `cfg` discovery APIs, and so must
-//! be supported here. Where your target *is* precisely selectable through the
-//! existing `cfg` infrastructure, it belongs in the macro.
-//!
 //! This build script translates the target for which `radium` is being compiled
 //! into a set of directives that the crate can use to control which atomic
 //! symbols it attempts to name.
@@ -18,7 +12,8 @@
 //! we are able to uniquely identify targets through `cfg` checks.
 //!
 //! Use `rustc --print target-list` to enumerate the full list of targets
-//! available.
+//! available, and `rustc --print cfg` (optionally with `-Z unstable-options`)
+//! to see what `cfg` values are produced for a target.
 //!
 //! The missing `cfg` checks required for conditional compilation, rather than a
 //! build script, are:
@@ -79,9 +74,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[allow(clippy::match_single_binding, clippy::single_match)]
     match arch {
         // "riscv32imc-unknown-none-elf" and "riscv32imac-unknown-none-elf" are
-        // both `target_arch = "riscv32", and have no `cfg`-discoverable
+        // both `target_arch = "riscv32", and have no stable `cfg`-discoverable
         // distinction. As such, the atomic RISC-V target must be discovered
-        // here, rather than in the macro.
+        // here.
         "mips" | "mipsel" | "powerpc" | "riscv32imac" => atomics.has_64 = false,
         "riscv32i" | "riscv32imc" => atomics = Atomics::NONE,
         _ => {}

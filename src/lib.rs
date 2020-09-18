@@ -539,11 +539,11 @@ macro_rules! radium {
         impl marker::NumericOps for $base {}
 
         #[cfg($flag)]
-		impl Radium<$base> for $atom {
-			radium!(atom $base);
-			radium!(atom_bit $base);
-			radium!(atom_int $base);
-		}
+        impl Radium<$base> for $atom {
+            radium!(atom $base);
+            radium!(atom_bit $base);
+            radium!(atom_int $base);
+        }
 
         impl Radium<$base> for Cell<$base> {
             radium!(cell $base);
@@ -777,10 +777,32 @@ mod tests {
     #[test]
     fn always_cell() {
         static_assertions::assert_impl_all!(Cell<bool>: Radium<bool>);
+        static_assertions::assert_impl_all!(Cell<i8>: Radium<i8>);
         static_assertions::assert_impl_all!(Cell<u8>: Radium<u8>);
+        static_assertions::assert_impl_all!(Cell<i16>: Radium<i16>);
         static_assertions::assert_impl_all!(Cell<u16>: Radium<u16>);
+        static_assertions::assert_impl_all!(Cell<i32>: Radium<i32>);
         static_assertions::assert_impl_all!(Cell<u32>: Radium<u32>);
+        static_assertions::assert_impl_all!(Cell<i64>: Radium<i64>);
         static_assertions::assert_impl_all!(Cell<u64>: Radium<u64>);
+        static_assertions::assert_impl_all!(Cell<isize>: Radium<isize>);
         static_assertions::assert_impl_all!(Cell<usize>: Radium<usize>);
+        static_assertions::assert_impl_all!(Cell<*mut ()>: Radium<*mut ()>);
+    }
+
+    #[test]
+    fn always_alias() {
+        static_assertions::assert_impl_all!(types::RadiumBool: Radium<bool>);
+        static_assertions::assert_impl_all!(types::RadiumI8: Radium<i8>);
+        static_assertions::assert_impl_all!(types::RadiumU8: Radium<u8>);
+        static_assertions::assert_impl_all!(types::RadiumI16: Radium<i16>);
+        static_assertions::assert_impl_all!(types::RadiumU16: Radium<u16>);
+        static_assertions::assert_impl_all!(types::RadiumI32: Radium<i32>);
+        static_assertions::assert_impl_all!(types::RadiumU32: Radium<u32>);
+        static_assertions::assert_impl_all!(types::RadiumI64: Radium<i64>);
+        static_assertions::assert_impl_all!(types::RadiumU64: Radium<u64>);
+        static_assertions::assert_impl_all!(types::RadiumIsize: Radium<isize>);
+        static_assertions::assert_impl_all!(types::RadiumUsize: Radium<usize>);
+        static_assertions::assert_impl_all!(types::RadiumPtr<()>: Radium<*mut ()>);
     }
 }
