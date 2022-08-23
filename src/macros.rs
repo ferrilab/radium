@@ -1,69 +1,69 @@
 #[doc(hidden)]
 #[macro_export]
-#[cfg(radium_atomic_8)]
+#[cfg(target_has_atomic = "8")]
 macro_rules! __radium_if_atomic_8 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(not(radium_atomic_8))]
+#[cfg(not(target_has_atomic = "8"))]
 macro_rules! __radium_if_atomic_8 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($b)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(radium_atomic_16)]
+#[cfg(target_has_atomic = "16")]
 macro_rules! __radium_if_atomic_16 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(not(radium_atomic_16))]
+#[cfg(not(target_has_atomic = "16"))]
 macro_rules! __radium_if_atomic_16 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($b)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(radium_atomic_32)]
+#[cfg(target_has_atomic = "32")]
 macro_rules! __radium_if_atomic_32 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(not(radium_atomic_32))]
+#[cfg(not(target_has_atomic = "32"))]
 macro_rules! __radium_if_atomic_32 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($b)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(radium_atomic_64)]
+#[cfg(target_has_atomic = "64")]
 macro_rules! __radium_if_atomic_64 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(not(radium_atomic_64))]
+#[cfg(not(target_has_atomic = "64"))]
 macro_rules! __radium_if_atomic_64 {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($b)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(radium_atomic_ptr)]
+#[cfg(target_has_atomic = "ptr")]
 macro_rules! __radium_if_atomic_ptr {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
 }
 
 #[doc(hidden)]
 #[macro_export]
-#[cfg(not(radium_atomic_ptr))]
+#[cfg(not(target_has_atomic = "ptr"))]
 macro_rules! __radium_if_atomic_ptr {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($b)* }
 }
