@@ -56,6 +56,20 @@ macro_rules! __radium_if_atomic_64 {
 
 #[doc(hidden)]
 #[macro_export]
+#[cfg(target_has_atomic = "128")]
+macro_rules! __radium_if_atomic_128 {
+    ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
+}
+
+#[doc(hidden)]
+#[macro_export]
+#[cfg(not(target_has_atomic = "128"))]
+macro_rules! __radium_if_atomic_128 {
+    ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($b)* }
+}
+
+#[doc(hidden)]
+#[macro_export]
 #[cfg(radium_atomic_ptr)]
 macro_rules! __radium_if_atomic_ptr {
     ( [ $( $a:tt )* ] [ $( $b:tt )* ] ) => { $($a)* }
@@ -98,6 +112,7 @@ macro_rules! __radium_if_atomic_ptr {
 /// - `16`
 /// - `32`
 /// - `64`
+/// - `128`
 /// - `ptr`
 /// - `bool`: alias for `8`
 /// - `size`: alias for `ptr`
@@ -150,6 +165,13 @@ macro_rules! if_atomic {
 
     ( if atomic(64) { $($a:tt)* } $( else { $($b:tt)* } )? $( if $($rest:tt)* )? ) => {
         $crate::__radium_if_atomic_64! {
+            [ $($a)* ] [ $( $($b)* )? ]
+        }
+        $( $crate::if_atomic! { if $($rest)* } )?
+    };
+
+    ( if atomic(128) { $($a:tt)* } $( else { $($b:tt)* } )? $( if $($rest:tt)* )? ) => {
+        $crate::__radium_if_atomic_128! {
             [ $($a)* ] [ $( $($b)* )? ]
         }
         $( $crate::if_atomic! { if $($rest)* } )?

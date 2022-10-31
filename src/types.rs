@@ -59,6 +59,18 @@ pub type RadiumU64 = if_atomic! {
     else { core::cell::Cell<u64> }
 };
 
+/// Best-effort atomic `i128` type.
+pub type RadiumI128 = if_atomic! {
+    if atomic(128) { core::sync::atomic::AtomicI128 }
+    else { core::cell::Cell<i128> }
+};
+
+/// Best-effort atomic `u128` type.
+pub type RadiumU128 = if_atomic! {
+    if atomic(128) { core::sync::atomic::AtomicU128 }
+    else { core::cell::Cell<u128> }
+};
+
 /// Best-effort atomic `isize` type.
 pub type RadiumIsize = if_atomic! {
     if atomic(size) { core::sync::atomic::AtomicIsize }
