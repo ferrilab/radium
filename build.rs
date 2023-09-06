@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     #[allow(clippy::match_single_binding, clippy::single_match)]
     match tgt_arch {
         "armv5te" | "mips" | "mipsel" | "powerpc" | "riscv32imac" | "thumbv7em" | "thumbv7m"
-        | "thumbv8m.base" | "thumbv8m.main" | "armebv7r" | "armv7r" => atomics.has_64 = false,
+        | "thumbv8m.base" | "thumbv8m.main" | "armebv7r" | "armv7r" | "xtensa" => atomics.has_64 = false,
         // These ARMv7 targets have 32-bit pointers and 64-bit atomics.
         "armv7" | "armv7a" | "armv7s" => atomics.has_64 = true,
         // "riscv32imc-unknown-none-elf" and "riscv32imac-unknown-none-elf" are
