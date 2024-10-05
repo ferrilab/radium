@@ -830,6 +830,133 @@ impl<T> Radium for Cell<*mut T> {
     }
 }
 
+impl marker::BitOps for () {}
+impl marker::NumericOps for () {}
+
+impl Radium for () {
+    type Item = ();
+
+    fn new(value: Self::Item) -> Self {
+        value
+    }
+
+    fn fence(_order: Ordering) {
+        /* not atomic, do nothing */
+    }
+
+    fn get_mut(&mut self) -> &mut Self::Item {
+        self
+    }
+
+    fn into_inner(self) -> Self::Item {
+        self
+    }
+
+    fn load(&self, _order: Ordering) -> Self::Item {
+        *self
+    }
+
+    fn store(&self, _value: Self::Item, _order: Ordering) {
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn swap(&self, _value: Self::Item, _order: Ordering) -> Self::Item {
+        /* () has only one value, hence all stores are NOPs */
+        *self
+    }
+
+    fn compare_and_swap(
+        &self,
+        _current: Self::Item,
+        _new: Self::Item,
+        _order: Ordering,
+    ) -> Self::Item {
+        /* () has only one value, hence all stores are NOPs */
+        *self
+    }
+
+    fn compare_exchange(
+        &self,
+        _current: Self::Item,
+        _new: Self::Item,
+        _success: Ordering,
+        _failure: Ordering,
+    ) -> Result<Self::Item, Self::Item> {
+        /* () has only one value, hence all stores are NOPs */
+        Ok(())
+    }
+
+    fn compare_exchange_weak(
+        &self,
+        _current: Self::Item,
+        _new: Self::Item,
+        _success: Ordering,
+        _failure: Ordering,
+    ) -> Result<Self::Item, Self::Item> {
+        /* () has only one value, hence all stores are NOPs */
+        Ok(())
+    }
+
+    fn fetch_and(&self, _value: Self::Item, _order: Ordering) -> Self::Item
+    where
+        Self::Item: marker::BitOps,
+    {
+
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn fetch_nand(&self, _value: Self::Item, _order: Ordering) -> Self::Item
+    where
+        Self::Item: marker::BitOps,
+    {
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn fetch_or(&self, _value: Self::Item, _order: Ordering) -> Self::Item
+    where
+        Self::Item: marker::BitOps,
+    {
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn fetch_xor(&self, _value: Self::Item, _order: Ordering) -> Self::Item
+    where
+        Self::Item: marker::BitOps,
+    {
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn fetch_add(&self, _value: Self::Item, _order: Ordering) -> Self::Item
+    where
+        Self::Item: marker::NumericOps,
+    {
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn fetch_sub(&self, _value: Self::Item, _order: Ordering) -> Self::Item
+    where
+        Self::Item: marker::NumericOps,
+    {
+        /* () has only one value, hence all stores are NOPs */
+    }
+
+    fn fetch_update<F>(
+        &self,
+        _set_order: Ordering,
+        _fetch_order: Ordering,
+        mut f: F,
+    ) -> Result<Self::Item, Self::Item>
+    where
+        F: FnMut(Self::Item) -> Option<Self::Item>,
+    {
+        /* () has only one value, hence all stores are NOPs */
+        match f(()) {
+            Some(()) => Ok(()),
+            None => Err(()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -910,5 +1037,10 @@ mod tests {
                 static_assertions::assert_impl_all!(AtomicPtr<()>: Radium<Item = *mut ()>);
             }
         }
+    }
+
+    #[test]
+    fn always_empty_type() {
+        static_assertions::assert_impl_all!((): Radium<Item = ()>);
     }
 }
