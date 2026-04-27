@@ -85,6 +85,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         | "thumbv8m.base" | "thumbv8m.main" | "armebv7r" | "armv7r" => atomics.has_64 = false,
         // These ARMv7 targets have 32-bit pointers and 64-bit atomics.
         "armv7" | "armv7a" | "armv7s" => atomics.has_64 = true,
+        // Ledger hardware wallet targets
+        "nanosplus" | "stax" | "nanox" | "flex" => atomics.has_64 = false,
         // "riscv32imc-unknown-none-elf" and "riscv32imac-unknown-none-elf" are
         // both `target_arch = "riscv32", and have no stable `cfg`-discoverable
         // distinction. As such, the non-atomic RISC-V targets must be
